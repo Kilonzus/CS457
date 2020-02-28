@@ -1,21 +1,52 @@
 package main
 
 import (
-"fmt"
-"bufio"
-"os"
-"strings"
+    "encoding/csv"
+    "fmt"
+    "bufio"
+    "os"
+    "strings"
+    "log"
 )
 
-func createDB(nomme string) bool {
-    err := os.Mkdir(nomme, 0700)
+func create(dbname string, argss []string, param [] string) bool{
 
-    if err == nil {
-        return true;
+    if argss[1] == "DATABASE" {
+        err := os.Mkdir(argss[2], 0700)
+
+        if err == nil {
+            return true
+        } else {
+            return false
+        } 
+    } else if argss[1] == "TABLE" {
+        if dbname == "none" {
+            log.Fatalf("!Failed to make table because no directory was specified.")
+        }
+        filename := dbname + "/" + argss[2] + ".csv"
+        csvfile, err := os.Create(filename)
+        csvfile.Close()
+
+        csvwriter := csv.NewWriter(csvfile)
+        for i := 3; i < len(argss); i++ {
+            fmt.Println(argss[i])
+        }
+
+        csvwriter.Flush()
+
+        if err == nil {
+            return true
+        } else {
+            return false
+        }
+    
     } else {
         return false
     }
+    
+    
 }
+
 
 func deleteDB(nomme string) bool {
     err := os.RemoveAll(nomme)
@@ -27,24 +58,35 @@ func deleteDB(nomme string) bool {
     }
 }
 
+func useDB(dbname string) bool {
+    if _, err := os.Stat(dbname); os.IsNotExist(err) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
 func menu() {
     reader := bufio.NewReader(os.Stdin)
     var name string
-    
+    var currDB string
+    currDB = "none"
     //fmt.Println(len(argss))
     cond := false
     for cond != true {
         name, _ = reader.ReadString('\n')
         name = strings.TrimRight(name, "\n")
         argss := strings.Split(name, " ")
+        //param := strings.Split(name, " (")
+        //fmt.Println(param[1])
         switch prod := argss[0]; prod {
         case "CREATE":
         
-            success := createDB(argss[2])
-            if !success {
-                fmt.Println("!Failed to create database", argss[2], "because it already exists.")
+            success := create(currDB,argss, param)
+            if success == false {
+                fmt.Println("!Failed to create", argss[1], argss[2], "because it already exists.")
             } else {
-                fmt.Println("Creating database", argss[2])
+                fmt.Println("Creating ", argss[1], argss[2])
             }
             break
 
@@ -56,7 +98,14 @@ func menu() {
                 fmt.Println("Deleting database", argss[2])
             }
             break
-
+        case "USE":
+            success := useDB(argss[1])
+            if !success {
+                fmt.Println("!Failed to access database", argss[1], "because it does not exist.")
+            } else {
+                fmt.Println("Using database", argss[1])
+                currDB = argss[1]
+            }
         case ".EXIT" :
             cond = true
             break
