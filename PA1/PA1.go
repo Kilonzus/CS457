@@ -28,8 +28,8 @@ func create(dbname string, argss []string, param [] string) bool{
         csvfile.Close()
 
         csvwriter := csv.NewWriter(csvfile)
-        for i := 3; i < len(argss); i++ {
-            fmt.Println(argss[i])
+        for i := 0; i < len(param); i++ {
+            fmt.Println(param[i])
         }
 
         csvwriter.Flush()
@@ -66,6 +66,10 @@ func useDB(dbname string) bool {
     }
 }
 
+//to-do:
+//split create into two functions one for db one for tables
+//and create format string function.
+
 func menu() {
     reader := bufio.NewReader(os.Stdin)
     var name string
@@ -77,7 +81,8 @@ func menu() {
         name, _ = reader.ReadString('\n')
         name = strings.TrimRight(name, "\n")
         argss := strings.Split(name, " ")
-        //param := strings.Split(name, " (")
+        param := strings.Split(name, " (")
+        param[len(param) - 1] = strings.TrimRight(param[len(param) - 1], ")")
         //fmt.Println(param[1])
         switch prod := argss[0]; prod {
         case "CREATE":
@@ -123,18 +128,5 @@ func main() {
 
     menu()
     
-    //reading a string
-
-/*
-    var teststring string
-    teststring = "CREATE"
-    res1 := name == (teststring + "\n")
     
-    if res1 {
-    	fmt.Println("You wish to create a database.")
-    }
-    fmt.Println("1 is", name)
-    fmt.Println("2 is", teststring)
-    fmt.Println(res1)
-    */
 }
