@@ -70,6 +70,15 @@ func useDB(dbname string) bool {
 //split create into two functions one for db one for tables
 //and create format string function.
 
+func fmtstr(val string) []string {
+    values := strings.Split(val, " (")
+    params := strings.Split(values[1], ",")
+    params[len(params)-1] = strings.TrimSuffix(params[len(params)-1], ")")
+    fmt.Println("Parameters are", params, "length of ", len(params))
+
+    return params
+}
+
 func menu() {
     reader := bufio.NewReader(os.Stdin)
     var name string
@@ -81,9 +90,7 @@ func menu() {
         name, _ = reader.ReadString('\n')
         name = strings.TrimRight(name, "\n")
         argss := strings.Split(name, " ")
-        param := strings.Split(name, " (")
-        param[len(param) - 1] = strings.TrimRight(param[len(param) - 1], ")")
-        //fmt.Println(param[1])
+        param := fmtstr(name)
         switch prod := argss[0]; prod {
         case "CREATE":
         
