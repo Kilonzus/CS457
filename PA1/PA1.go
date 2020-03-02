@@ -9,6 +9,12 @@ import (
     "log"
 )
 
+func checkError(message string, err error) {
+    if err != nil {
+        log.Fatal(message, err)
+    }
+}
+
 func createDB(argss []string) bool{
 
     err := os.Mkdir(argss[2], 0700)
@@ -26,6 +32,9 @@ func createTBL(dbname string, argss[]string, param[] string) bool{
     if dbname == "none" {
         log.Fatalf("!Failed to make table because no directory was specified.")
     }
+
+    var data = [][]string{{"Line1", "Hello Readers of"}, {"Line2", "golangcode.com"}}
+
     filename := dbname + "/" + argss[2] + ".csv"
     csvfile, err := os.Create(filename)
     csvfile.Close()
@@ -33,11 +42,17 @@ func createTBL(dbname string, argss[]string, param[] string) bool{
     csvwriter := csv.NewWriter(csvfile)
     defer csvwriter.Flush()
     //for _, i := range param {
-        if err2 := csvwriter.Write(param); err2 != nil {
-            log.Fatalln("error writing record to csv:", err2)
+        //if err2 := csvwriter.Write(param); err2 != nil {
+        //    log.Fatalln("error writing record to csv:", err2)
         //}
-    }
+    //}
 
+    for _, value := range data {
+        err1 := csvwriter.Write(value)
+        checkError("Cannot write to file", err1)
+        //err2 := csvwriter.Write(param)
+        //checkError("??",err2)
+    }
     
 
     if err == nil {
