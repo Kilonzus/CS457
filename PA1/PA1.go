@@ -1,3 +1,6 @@
+//AUTHOR: Peter Kilonzo Jr
+//CS457 PRogramming Assignment 1
+//3-1-2020
 package main
 
 import (
@@ -7,6 +10,7 @@ import (
     "os"
     "strings"
     "log"
+    "io"
 )
 
 func checkError(message string, err error) {
@@ -33,9 +37,6 @@ func createTBL(dbname string, argss[]string, param[] string) bool{
         log.Fatalf("!Failed to make table because no directory was specified.")
     }
 
-    for i := 0; i < len(param); i++ {
-        fmt.Println(param[i])
-    }
 
     //var data = [][]string{{"Line1", "Hello Readers of"}, {"Line2", "golangcode.com"}}
     
@@ -92,15 +93,39 @@ func useDB(dbname string) bool {
     }
 }
 
-//to-do:
-//split create into two functions one for db one for tables
-//and create format string function.
+func getTBL(dbname string, nomme string) bool {
+    filename := dbname + "/" + nomme + ".csv"
+    csvfile, err := os.Open(filename)
+    if err != nil {
+        return false
+    }
+    reader := csv.NewReader(csvfile)
+    for {
+        record, err1 := reader.Read()
+        if err1 == io.EOF {
+            break
+        }
+        if err1 != nil {
+            log.Fatal(err)
+        }
+        for i := 0; i < len(record); i++ {
+            fmt.Print(record[i])
+            if i < len(record)-1 {
+                fmt.Print(" | ")
+            }
+        }
+        fmt.Println("")
+    }
+
+    return true
+}
+
+
 
 func fmtstr(val string) []string {
     values := strings.Split(val, " (")
     params := strings.Split(values[1], ",")
     params[len(params)-1] = strings.TrimSuffix(params[len(params)-1], ")")
-    fmt.Println("Parameters are", params, "length of ", len(params))
     for i := 0; i < len(params); i++ {
         params[i] = strings.TrimLeft(params[i], " ")
     }
@@ -119,7 +144,7 @@ func menu() {
         name, _ = reader.ReadString('\n')
         name = strings.TrimRight(name, "\n")
         argss := strings.Split(name, " ")
-        switch prod := argss[0]; prod {
+        switch prod := strings.ToUpper(argss[0]); prod {
         case "CREATE":
         
             var success bool
@@ -158,10 +183,17 @@ func menu() {
                 fmt.Println("Using database", argss[1])
                 currDB = argss[1]
             }
+
+        case "SELECT":
+            success := getTBL(currDB,argss[3])
+            if !success {
+                fmt.Println("!Failed to query table", argss[3], "because it does not exist.")
+            } 
+        case "ALTER":
+            fmt.Println("functionality coming soon")
         case ".EXIT" :
             cond = true
             break
-
         default:
             fmt.Println("Invalid Selection!")
             break
