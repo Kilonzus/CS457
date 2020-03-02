@@ -33,27 +33,27 @@ func createTBL(dbname string, argss[]string, param[] string) bool{
         log.Fatalf("!Failed to make table because no directory was specified.")
     }
 
-    var data = [][]string{{"Line1", "Hello Readers of"}, {"Line2", "golangcode.com"}}
-
-    filename := dbname + "/" + argss[2] + ".csv"
-    csvfile, err := os.Create(filename)
-    csvfile.Close()
-
-    csvwriter := csv.NewWriter(csvfile)
-    defer csvwriter.Flush()
-    //for _, i := range param {
-        //if err2 := csvwriter.Write(param); err2 != nil {
-        //    log.Fatalln("error writing record to csv:", err2)
-        //}
-    //}
-
-    for _, value := range data {
-        err1 := csvwriter.Write(value)
-        checkError("Cannot write to file", err1)
-        //err2 := csvwriter.Write(param)
-        //checkError("??",err2)
+    for i := 0; i < len(param); i++ {
+        fmt.Println(param[i])
     }
+
+    //var data = [][]string{{"Line1", "Hello Readers of"}, {"Line2", "golangcode.com"}}
     
+    filename := dbname + "/" + argss[2] + ".csv"
+
+    file, err := os.Create(filename)
+    checkError("Cannot create file", err)
+    defer file.Close()
+
+    writer := csv.NewWriter(file)
+    defer writer.Flush()
+
+    //for _, value := range data {
+    //    err := writer.Write(value)
+    //    checkError("Cannot write to file", err)
+    //}
+        er := writer.Write(param)
+        checkError("Cannot write to file", er)
 
     if err == nil {
         return true
@@ -101,6 +101,9 @@ func fmtstr(val string) []string {
     params := strings.Split(values[1], ",")
     params[len(params)-1] = strings.TrimSuffix(params[len(params)-1], ")")
     fmt.Println("Parameters are", params, "length of ", len(params))
+    for i := 0; i < len(params); i++ {
+        params[i] = strings.TrimLeft(params[i], " ")
+    }
 
     return params
 }
