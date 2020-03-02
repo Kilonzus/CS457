@@ -9,47 +9,58 @@ import (
     "log"
 )
 
-func create(dbname string, argss []string, param [] string) bool{
+func createDB(argss []string) bool{
 
-    if argss[1] == "DATABASE" {
-        err := os.Mkdir(argss[2], 0700)
+    err := os.Mkdir(argss[2], 0700)
 
-        if err == nil {
-            return true
-        } else {
-            return false
-        } 
-    } else if argss[1] == "TABLE" {
-        if dbname == "none" {
-            log.Fatalf("!Failed to make table because no directory was specified.")
-        }
-        filename := dbname + "/" + argss[2] + ".csv"
-        csvfile, err := os.Create(filename)
-        csvfile.Close()
-
-        csvwriter := csv.NewWriter(csvfile)
-        for i := 0; i < len(param); i++ {
-            fmt.Println(param[i])
-        }
-
-        csvwriter.Flush()
-
-        if err == nil {
-            return true
-        } else {
-            return false
-        }
+    if err == nil {
+        return true
+    } else {
+        return false
+    } 
     
+    
+}
+
+func createTBL(dbname string, argss[]string, param[] string) bool{
+    if dbname == "none" {
+        log.Fatalf("!Failed to make table because no directory was specified.")
+    }
+    filename := dbname + "/" + argss[2] + ".csv"
+    csvfile, err := os.Create(filename)
+    csvfile.Close()
+
+    csvwriter := csv.NewWriter(csvfile)
+    defer csvwriter.Flush()
+    //for _, i := range param {
+        if err2 := csvwriter.Write(param); err2 != nil {
+            log.Fatalln("error writing record to csv:", err2)
+        //}
+    }
+
+    
+
+    if err == nil {
+        return true
     } else {
         return false
     }
-    
-    
 }
 
 
 func deleteDB(nomme string) bool {
     err := os.RemoveAll(nomme)
+
+    if err == nil {
+        return true;
+    } else {
+        return false
+    }
+}
+
+func deleteTBL(dbname string, nomme string) bool {
+    deltbl := dbname + "/" + nomme + ".csv"
+    err := os.Remove(deltbl)
 
     if err == nil {
         return true;
@@ -84,17 +95,23 @@ func menu() {
     var name string
     var currDB string
     currDB = "none"
-    //fmt.Println(len(argss))
+
     cond := false
     for cond != true {
         name, _ = reader.ReadString('\n')
         name = strings.TrimRight(name, "\n")
         argss := strings.Split(name, " ")
-        param := fmtstr(name)
         switch prod := argss[0]; prod {
         case "CREATE":
         
-            success := create(currDB,argss, param)
+            var success bool
+            if argss[1] == "DATABASE" {
+                success = createDB(argss)
+            } else if argss[1] == "TABLE" {
+                param := fmtstr(name)
+                success = createTBL(currDB,argss,param)
+            }
+            
             if success == false {
                 fmt.Println("!Failed to create", argss[1], argss[2], "because it already exists.")
             } else {
@@ -103,7 +120,12 @@ func menu() {
             break
 
         case "DROP":
-            success := deleteDB(argss[2])
+            var success bool
+            if argss[1] == "DATABASE" {
+                success = deleteDB(argss[2])
+            } else if argss[1] == "TABLE" {
+                success = deleteTBL(currDB,argss[2])
+            }
             if !success {
                 fmt.Println("!Failed to delete database", argss[2], "because it does not exist.")
             } else {
