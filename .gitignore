@@ -1,3 +1,6 @@
 *.csv
 db1/
 db2/
+*.zip
+*.pdf
+*.odt
