@@ -36,9 +36,6 @@ func createTBL(dbname string, argss[]string, param[] string) bool{
     if dbname == "none" {
         log.Fatalf("!Failed to make table because no directory was specified.")
     }
-
-
-    //var data = [][]string{{"Line1", "Hello Readers of"}, {"Line2", "golangcode.com"}}
     
     filename := dbname + "/" + argss[2] + ".csv"
 
@@ -53,8 +50,8 @@ func createTBL(dbname string, argss[]string, param[] string) bool{
     //    err := writer.Write(value)
     //    checkError("Cannot write to file", err)
     //}
-        er := writer.Write(param)
-        checkError("Cannot write to file", er)
+    er := writer.Write(param)
+    checkError("Cannot write to file", er)
 
     if err == nil {
         return true
@@ -65,13 +62,20 @@ func createTBL(dbname string, argss[]string, param[] string) bool{
 
 
 func deleteDB(nomme string) bool {
-    err := os.RemoveAll(nomme)
 
-    if err == nil {
-        return true;
+    if _, err := os.Stat(nomme); os.IsNotExist(err) {
+    // path/to/whatever does not exist
+    fmt.Println("shit not here")
     } else {
-        return false
+        fmt.Println("Guess it do")
     }
+    //err := os.RemoveAll(nomme)
+
+    //if err == nil {
+        return true;
+    //} else {
+      //  return false
+   // }
 }
 
 func deleteTBL(dbname string, nomme string) bool {
@@ -204,7 +208,7 @@ func menu() {
 }
 
 func main() {
-
+    
     menu()
     
     
