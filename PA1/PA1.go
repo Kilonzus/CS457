@@ -72,18 +72,17 @@ func deleteDB(nomme string) bool {
     //err := os.RemoveAll(nomme)
 
     //if err == nil {
-        return true;
+        return false;
     //} else {
       //  return false
-   // }
-}
+    }
 
 func deleteTBL(dbname string, nomme string) bool {
     deltbl := dbname + "/" + nomme + ".csv"
     err := os.Remove(deltbl)
 
     if err == nil {
-        return true;
+        return true
     } else {
         return false
     }
@@ -91,9 +90,9 @@ func deleteTBL(dbname string, nomme string) bool {
 
 func useDB(dbname string) bool {
     if _, err := os.Stat(dbname); os.IsNotExist(err) {
-        return false;
+        return false
     } else {
-        return true;
+        return true
     }
 }
 
@@ -168,7 +167,7 @@ func menu() {
 
         case "DROP":
             var success bool
-            if argss[1] == "DATABASE" {
+            if strings.ToUpper(argss[1]) == "DATABASE" {
                 success = deleteDB(argss[2])
             } else if argss[1] == "TABLE" {
                 success = deleteTBL(currDB,argss[2])
