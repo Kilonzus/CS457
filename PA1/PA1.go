@@ -65,17 +65,16 @@ func deleteDB(nomme string) bool {
 
     if _, err := os.Stat(nomme); os.IsNotExist(err) {
     // path/to/whatever does not exist
-    fmt.Println("shit not here")
+        fmt.Println("shit not here")
+        return false
+
     } else {
         fmt.Println("Guess it do")
+        os.RemoveAll(nomme)
+        return true
     }
-    //err := os.RemoveAll(nomme)
 
-    //if err == nil {
-        return false;
-    //} else {
-      //  return false
-    }
+}
 
 func deleteTBL(dbname string, nomme string) bool {
     deltbl := dbname + "/" + nomme + ".csv"
@@ -103,10 +102,10 @@ func getTBL(dbname string, nomme string) bool {
         return false
     }
     reader := csv.NewReader(csvfile)
-    for {
+    //for {
         record, err1 := reader.Read()
         if err1 == io.EOF {
-            break
+            return false
         }
         if err1 != nil {
             log.Fatal(err)
@@ -118,8 +117,51 @@ func getTBL(dbname string, nomme string) bool {
             }
         }
         fmt.Println("")
-    }
+    //}
 
+    return true
+}
+
+//new bug now appending columns will eat existing values
+//almost as if there are only a set amount of values in the
+//csvfile and it can not be expanded
+func addCol(colName string, tblname string, dbname string) bool {
+    if dbname == "none" {
+        log.Fatalf("!Failed to alter table because no database was specified.")
+        //return false
+    }
+    filename := dbname + "/" + tblname + ".csv"
+    fmt.Println(filename)
+    f, err := os.Open(filename)
+    //os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0644)
+    if err != nil {
+        fmt.Println("Error opening ", filename)
+        return false
+    }
+    reader := csv.NewReader(bufio.NewReader(f))
+    line, err1 := reader.Read()
+    f.Close()
+    if err1 == io.EOF {
+            return false
+        }
+    if err1 != nil {
+        fmt.Println("error happened err1 != nill")
+        log.Fatal(err)
+        }
+    file, err2 := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0644)
+    if err2 != nil {
+        fmt.Println("error happened err2 != nill")
+        log.Fatal(err)
+        }
+    fmt.Println(line)
+    //file.Truncate(0)
+    file.Seek(0, 0)
+    //col := []string{colName}
+    line = append(line, colName)
+    fmt.Println(line)
+    writer := csv.NewWriter(file)
+    writer.Write(line)
+    writer.Flush()
     return true
 }
 
@@ -146,6 +188,7 @@ func menu() {
     for cond != true {
         name, _ = reader.ReadString('\n')
         name = strings.TrimRight(name, "\n")
+        name = strings.TrimRight(name, ";")
         argss := strings.Split(name, " ")
         switch prod := strings.ToUpper(argss[0]); prod {
         case "CREATE":
@@ -161,7 +204,7 @@ func menu() {
             if success == false {
                 fmt.Println("!Failed to create", argss[1], argss[2], "because it already exists.")
             } else {
-                fmt.Println("Creating ", argss[1], argss[2])
+                fmt.Println("Creating", argss[1], argss[2])
             }
             break
 
@@ -193,7 +236,24 @@ func menu() {
                 fmt.Println("!Failed to query table", argss[3], "because it does not exist.")
             } 
         case "ALTER":
-            fmt.Println("functionality coming soon")
+            var success bool
+            if strings.ToUpper(argss[3]) == "ADD" {
+                var colName string
+                for i := 4; i < len(argss); i++ {
+                    if i > 4 {
+                        colName += " "
+                    }
+                    colName += argss[i]
+                }
+                success = addCol(colName, argss[2], currDB)
+            } //else if strings.ToUpper(argss[2]) == "DROP" {
+
+            //}
+            if !success {
+                fmt.Println("!Failed to alter table", argss[2], "because it does not exist.")
+            } else {
+                fmt.Println("Altering table", argss[2])
+            }
         case ".EXIT" :
             cond = true
             break
