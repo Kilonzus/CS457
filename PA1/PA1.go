@@ -1,6 +1,7 @@
 //AUTHOR: Peter Kilonzo Jr
 //CS457 PRogramming Assignment 1
 //3-1-2020
+
 package main
 
 import (
@@ -32,6 +33,7 @@ func createDB(argss []string) bool{
     
 }
 
+//need to check whether the table already exists if so this should fail
 func createTBL(dbname string, argss[]string, param[] string) bool{
     if dbname == "none" {
         log.Fatalf("!Failed to make table because no directory was specified.")
@@ -65,11 +67,11 @@ func deleteDB(nomme string) bool {
 
     if _, err := os.Stat(nomme); os.IsNotExist(err) {
     // path/to/whatever does not exist
-        fmt.Println("shit not here")
+        //fmt.Println("shit not here")
         return false
 
     } else {
-        fmt.Println("Guess it do")
+        //fmt.Println("Guess it do")
         os.RemoveAll(nomme)
         return true
     }
