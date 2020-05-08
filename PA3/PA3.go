@@ -33,8 +33,8 @@ func createDB(argss []string) bool{
     
 }
 
-//need to check whether the table already exists if so this should fail
-func createTBL(dbname string, argss[]string, param[] string) bool{
+
+func createTBL(dbname string, argss[]string) bool{
     if dbname == "none" {
         log.Fatalf("!Failed to make table because no directory was specified.")
     }
@@ -44,6 +44,7 @@ func createTBL(dbname string, argss[]string, param[] string) bool{
         return false
 
     }
+    param := argss[3:]
 
     file, err := os.Create(filename)
     checkError("Cannot create file", err)
@@ -97,30 +98,60 @@ func useDB(dbname string) bool {
     }
 }
 
-func getTBL(dbname string, nomme string) bool {
-    filename := dbname + "/" + nomme + ".csv"
+func getTBL(dbname string, args []string) bool {
+    filename := dbname + "/" + args[3] + ".csv"
+    filename2 := dbname + "/" + args[5] + ".csv"
     csvfile, err := os.Open(filename)
     if err != nil {
         return false
     }
     reader := csv.NewReader(csvfile)
-    //for {
-        record, err1 := reader.Read()
-        if err1 == io.EOF {
-            return false
-        }
-        if err1 != nil {
-            log.Fatal(err)
-        }
-        for i := 0; i < len(record); i++ {
-            fmt.Print(record[i])
-            if i < len(record)-1 {
-                fmt.Print(" | ")
+
+    file1record, err1 := reader.ReadAll()
+    if err1 != nil {
+        log.Fatal(err1)
+    }
+    csvfile.Close()
+
+    csvfile2, err2 := os.Open(filename2)
+    if err2 != nil {
+        return false
+    }
+    reader = csv.NewReader(csvfile2)
+    file2record, err3 := reader.ReadAll()
+    if err3 != nil {
+        log.Fatal(err3)
+    }
+    if len(file2record) > 1 {
+        fmt.Println("")
+    } 
+    if len(file1record) > 1 {
+        fmt.Println("")
+    } 
+    if args[7] == "where" {
+        name1 := strings.Split(args[8], ".")[1]
+        name2 := strings.Split(args[10], ".")[1]
+        fmt.Printf("%s, %s \n", name1, name2)
+
+        x, y:=-1, -1
+        for i := 0; i < len(file1record[0]); i++ {
+            if name1 == strings.Split(file1record[0][i], " ")[0] {
+                x = i 
             }
         }
-        fmt.Println("")
-    //}
+        for i := 0; i < len(file2record[0]); i++ {
+            if name2 == strings.Split(file2record[0][i], " ")[0] {
+                y = i 
+            }
+        }
 
+        if x == -1 || y == -1 {
+            fmt.Printf("Error one of the requested fields does not exist in one of the tables \n")
+            return false
+        }
+
+        
+    }
     return true
 }
 
@@ -133,7 +164,7 @@ func addCol(colName string, tblname string, dbname string) bool {
         //return false
     }
     filename := dbname + "/" + tblname + ".csv"
-    fmt.Println(filename)
+    //fmt.Println(filename)
     f, err := os.Open(filename)
     //os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0644)
     if err != nil {
@@ -167,45 +198,75 @@ func addCol(colName string, tblname string, dbname string) bool {
     return true
 }
 
-
-
-func fmtstr(val string) []string {
-    values := strings.Split(val, " (")
-    params := strings.Split(values[1], ",")
-    params[len(params)-1] = strings.TrimSuffix(params[len(params)-1], ")")
-    for i := 0; i < len(params); i++ {
-        params[i] = strings.TrimLeft(params[i], " ")
+func addData(args []string, dbname string) bool{
+    filename := dbname + "/" + args[2] + ".csv"
+    f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+    if err != nil {
+        fmt.Printf("error opening file")
+        return false
     }
+    vals := args[4:]
+    w := csv.NewWriter(f)
+    w.Write(vals)
+    w.Flush()
+    //fmt.Println(vals)
 
-    return params
+    return true
+}
+
+
+func getArgs(line string) []string {
+    var args []string
+    if strings.Contains(line, "(") {
+        linef := strings.TrimSuffix(line, ")")
+        args = strings.Split(linef, "(")
+        if len(args) > 2 {
+            for i := 2; i < len(args); i++ {
+                args[1] += ("("+args[i])
+            }
+            args = args[:2]
+        }
+        vals1 := strings.Split(args[0], " ")
+        vals2 := strings.Split(args[1], ",")
+        args = append(vals1, vals2...)
+    } else {
+        args= strings.Split(line, " ")
+    }
+    
+    
+    
+    
+    for i := 0; i < len(args); i++ {
+        args[i] = strings.TrimSpace(args[i])
+        args[i] = strings.TrimSuffix(args[i], "'")
+        args[i] = strings.TrimPrefix(args[i], "'")
+    }
+    return args
 }
 
 func menu() {
     reader := bufio.NewReader(os.Stdin)
     var name string
-    var currDB string
-    currDB = "none"
+    currDB := "none" // set current database to none
 
     cond := false
     for cond != true {
-        name, _ = reader.ReadString('\n')
-        name = strings.TrimRight(name, "\n")
-        name = strings.TrimRight(name, ";")
-        argss := strings.Split(name, " ")
+        name, _ = reader.ReadString(';') //read deach command until ; is reached
 
-        for i := 0; i < len(argss); i++ {
-            argss[i] = strings.TrimSpace(argss[i])
-            fmt.Printf("%d - %s\n",i, argss[i])
-        }
+        name = strings.TrimRight(name, ";") //remove the ; from the string of commands
+
+        argss := getArgs(name) //get the commands from the string
+        //for i := 0; i < len(argss); i++ {
+        //    fmt.Printf("argss[%d] consist of %s\n", i, argss[i])
+        //}
         switch prod := strings.ToUpper(argss[0]); prod {
         case "CREATE":
         
             var success bool
-            if argss[1] == "DATABASE" {
+            if strings.ToUpper(argss[1]) == "DATABASE" {
                 success = createDB(argss)
-            } else if argss[1] == "TABLE" {
-                param := fmtstr(name)
-                success = createTBL(currDB,argss,param)
+            } else if strings.ToUpper(argss[1]) == "TABLE" {
+                success = createTBL(currDB,argss)
             }
             
             if success == false {
@@ -238,7 +299,8 @@ func menu() {
             }
 
         case "SELECT":
-            success := getTBL(currDB,argss[3])
+            //var success bool
+            success := getTBL(currDB,argss)
             if !success {
                 fmt.Println("!Failed to query table", argss[3], "because it does not exist.")
             } 
@@ -261,22 +323,29 @@ func menu() {
             } else {
                 fmt.Println("Altering table", argss[2])
             }
+
+        case "INSERT": 
+
+            success := addData(argss, currDB)
+            if !success {
+                fmt.Printf("Failed to insert data into %s\n", argss[2])
+            } else {
+                fmt.Printf("1 new record added\n")
+            }
+
         case ".EXIT" :
             cond = true
             break
         default:
-            //fmt.Println("Invalid Selection!")
+            fmt.Println("Invalid Selection!")
             break
         }
     }
     
-
 }
 
 func main() {
     
     menu()
-    fmt.Printf("\n")
-    
     
 }
