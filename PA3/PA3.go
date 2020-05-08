@@ -129,9 +129,10 @@ func getTBL(dbname string, args []string) bool {
         fmt.Println("")
     } 
     if args[7] == "where" {
+        //col1 := 
         name1 := strings.Split(args[8], ".")[1]
         name2 := strings.Split(args[10], ".")[1]
-        fmt.Printf("%s, %s \n", name1, name2)
+        //fmt.Printf("%s, %s \n", name1, name2)
 
         x, y:=-1, -1
         for i := 0; i < len(file1record[0]); i++ {
@@ -150,10 +151,24 @@ func getTBL(dbname string, args []string) bool {
             return false
         }
 
-        
+        title := false
+        for i := 0; i < len(file1record); i++ {
+            for j := 0; j < len(file2record); j++ {
+                if file1record[i][x] == file2record[j][y] {
+                    if !title {
+                        fmt.Printf("%s|%s|%s|%s\n", file1record[0][0],file1record[0][1],
+                                file2record[0][0], file2record[0][1])
+                        title = true
+                    }
+                    fmt.Printf("%s|%s|%s|%s\n", file1record[i][0],file1record[i][1],
+                                file2record[j][0], file2record[j][1])
+                }
+            }
+        }
     }
     return true
 }
+
 
 //new bug now appending columns will eat existing values
 //almost as if there are only a set amount of values in the
@@ -214,7 +229,9 @@ func addData(args []string, dbname string) bool{
     return true
 }
 
-
+//This function takes the unformatted string from input and breaks it into
+//a string array where each element was a word in the unformatted string
+//it then returns that array orf strings
 func getArgs(line string) []string {
     var args []string
     if strings.Contains(line, "(") {
@@ -245,11 +262,11 @@ func getArgs(line string) []string {
 }
 
 func menu() {
-    reader := bufio.NewReader(os.Stdin)
-    var name string
-    currDB := "none" // set current database to none
+    reader := bufio.NewReader(os.Stdin) //reads information from terminal input
+    var name string //this string holds the unformated terminal input
+    currDB := "none" // variable to indicate current DB set current database to none
 
-    cond := false
+    cond := false // break condition for the for loop
     for cond != true {
         name, _ = reader.ReadString(';') //read deach command until ; is reached
 
@@ -260,11 +277,12 @@ func menu() {
         //    fmt.Printf("argss[%d] consist of %s\n", i, argss[i])
         //}
         switch prod := strings.ToUpper(argss[0]); prod {
-        case "CREATE":
+        case "CREATE": // case statements to do appropriate action
         
             var success bool
-            if strings.ToUpper(argss[1]) == "DATABASE" {
-                success = createDB(argss)
+            if strings.ToUpper(argss[1]) == "DATABASE" { // two different functions
+                success = createDB(argss)               // for create database and 
+                                                        // create table
             } else if strings.ToUpper(argss[1]) == "TABLE" {
                 success = createTBL(currDB,argss)
             }
@@ -289,7 +307,7 @@ func menu() {
                 fmt.Println("Deleting database", argss[2])
             }
             break
-        case "USE":
+        case "USE": // simply sets current database to argument passed
             success := useDB(argss[1])
             if !success {
                 fmt.Println("!Failed to access database", argss[1], "because it does not exist.")
@@ -298,13 +316,13 @@ func menu() {
                 currDB = argss[1]
             }
 
-        case "SELECT":
+        case "SELECT": //select case to return information from tables
             //var success bool
             success := getTBL(currDB,argss)
             if !success {
                 fmt.Println("!Failed to query table", argss[3], "because it does not exist.")
             } 
-        case "ALTER":
+        case "ALTER": //alter statement to add or subtract columns
             var success bool
             if strings.ToUpper(argss[3]) == "ADD" {
                 var colName string
@@ -324,7 +342,7 @@ func menu() {
                 fmt.Println("Altering table", argss[2])
             }
 
-        case "INSERT": 
+        case "INSERT": //insert statement to insert data into table
 
             success := addData(argss, currDB)
             if !success {
@@ -337,7 +355,7 @@ func menu() {
             cond = true
             break
         default:
-            fmt.Println("Invalid Selection!")
+            fmt.Printf("\n")
             break
         }
     }
