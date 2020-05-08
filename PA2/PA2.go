@@ -33,7 +33,7 @@ func createDB(argss []string) bool{
     
 }
 
-//need to check whether the table already exists if so this should fail
+
 func createTBL(dbname string, argss[]string, param[] string) bool{
     if dbname == "none" {
         log.Fatalf("!Failed to make table because no directory was specified.")
@@ -183,15 +183,22 @@ func fmtstr(val string) []string {
 func menu() {
     reader := bufio.NewReader(os.Stdin)
     var name string
-    var currDB string
-    currDB = "none"
+    currDB := "none" // set current database to none
 
     cond := false
     for cond != true {
-        name, _ = reader.ReadString('\n')
-        name = strings.TrimRight(name, "\n")
+        name, _ = reader.ReadString(';') //read deach command until ; is reache
+        //name = strings.TrimRight(name, "\n")
         name = strings.TrimRight(name, ";")
-        argss := strings.Split(name, " ")
+        testv:=strings.Fields(name)
+        //fmt.Printf("%s\n%d", testv, len(testv))
+        for i := 0; i < len(testv); i++ {
+            fmt.Printf("%s\n", testv[i])
+        }
+        argss := strings.Split(name, " ") //splits commands into arguments
+        //for i := 0; i < len(argss); i++ {
+        //    fmt.Printf("%s \n", argss[i])
+        //}
         switch prod := strings.ToUpper(argss[0]); prod {
         case "CREATE":
         
@@ -256,11 +263,23 @@ func menu() {
             } else {
                 fmt.Println("Altering table", argss[2])
             }
+
+        case "INSERT": 
+            var success bool
+            //tblName := argss[2]
+            //fmt.Printf(argss[3])
+            success = false
+            if !success {
+                fmt.Printf("\n")//Failed to insert data into %s\n", tblName)
+            } else {
+                fmt.Printf("1 new record added\n")
+            }
+
         case ".EXIT" :
             cond = true
             break
         default:
-            //fmt.Println("Invalid Selection!")
+            fmt.Println("Invalid Selection!")
             break
         }
     }
@@ -271,7 +290,6 @@ func menu() {
 func main() {
     
     menu()
-    fmt.Printf("\n")
     
     
 }

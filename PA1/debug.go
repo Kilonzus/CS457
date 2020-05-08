@@ -191,7 +191,11 @@ func menu() {
         name, _ = reader.ReadString('\n')
         name = strings.TrimRight(name, "\n")
         name = strings.TrimRight(name, ";")
-        argss := strings.Split(name, " ")
+        argss := strings.Split(name, " ")[3: ]
+
+        for i := 0; i < len(argss); i++ {
+            //fmt.Printf("%d - %s\n",i, argss[i])
+        }
         switch prod := strings.ToUpper(argss[0]); prod {
         case "CREATE":
         
